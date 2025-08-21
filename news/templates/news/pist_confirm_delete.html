@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление публикации{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="my-4">Удаление публикации</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Вы уверены, что хотите удалить?</h5>
+                    <p class="card-text">{{ post.title }}</p>
+                    <p class="text-muted">Тип: {{ post.get_post_type_display }}</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">Да, удалить</button>
+                            <a href="{% url 'news_list' %}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

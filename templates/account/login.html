@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> Вход в систему</h3>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Социальная авторизация -->
+                    <div class="text-center mb-4">
+                        <h5>Быстрый вход через социальные сети</h5>
+                        <div class="d-flex justify-content-center gap-3 mt-3">
+                            <!-- Кнопка с HTTP редиректом (без JavaScript) -->
+                            <a href="{% url 'yandex_immediate' %}" class="btn btn-yandex btn-lg">
+                                <i class="bi bi-circle-fill me-2" style="color: #FFCC00;"></i>
+                                Войти через Yandex
+                            </a>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Обычная форма входа -->
+                    <h5 class="text-center mb-3">Или войдите с помощью email</h5>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Неправильное имя пользователя или пароль.
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'account_login' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="id_login" class="form-label">Имя пользователя или Email</label>
+                            <input type="text" name="login" class="form-control form-control-lg" id="id_login"
+                                   required autofocus placeholder="Введите ваш логин или email">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">Пароль</label>
+                            <input type="password" name="password" class="form-control form-control-lg" id="id_password"
+                                   required placeholder="Введите ваш пароль">
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="remember" class="form-check-input" id="id_remember">
+                            <label class="form-check-label" for="id_remember">Запомнить меня</label>
+                        </div>
+
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg py-2">
+                                <i class="bi bi-key"></i> Войти
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <a href="{% url 'account_reset_password' %}" class="text-decoration-none">
+                                Забыли пароль?
+                            </a>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted">Нет аккаунта?</p>
+                        <a href="{% url 'account_signup' %}" class="btn btn-outline-success">
+                            <i class="bi bi-person-plus"></i> Зарегистрироваться
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

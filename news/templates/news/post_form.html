@@ -12,7 +12,7 @@
                 {% csrf_token %}
 
                 <div class="mb-3">
-                    {{ form.title.label_tag }}
+                    <label class="form-label">{{ form.title.label }}</label>
                     {{ form.title }}
                     {% if form.title.errors %}
                         <div class="text-danger">{{ form.title.errors }}</div>
@@ -20,7 +20,7 @@
                 </div>
 
                 <div class="mb-3">
-                    {{ form.content.label_tag }}
+                    <label class="form-label">{{ form.content.label }}</label>
                     {{ form.content }}
                     {% if form.content.errors %}
                         <div class="text-danger">{{ form.content.errors }}</div>
@@ -29,7 +29,7 @@
 
                 {% if form.post_type %}
                 <div class="mb-3">
-                    {{ form.post_type.label_tag }}
+                    <label class="form-label">{{ form.post_type.label }}</label>
                     {{ form.post_type }}
                     {% if form.post_type.errors %}
                         <div class="text-danger">{{ form.post_type.errors }}</div>

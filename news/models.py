@@ -31,6 +31,8 @@ class Post(models.Model):
         verbose_name = "Публикация"
         verbose_name_plural = "Публикации"
         ordering = ['-pub_date']
+
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -45,36 +47,15 @@ class PostForm(forms.ModelForm):
             'content': 'Содержание',
             'post_type': 'Тип публикации',
         }
-class News(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    pub_date = models.DateTimeField(default=timezone.now)
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
 
-    def __str__(self):
-        return self.title
 
-    def get_short_content(self):
-        """Возвращает первые 20 символов текста"""
-        return self.content[:20] + '...' if len(self.content) > 20 else self.content
+from django.contrib.auth.models import Group
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
 
-    def get_absolute_url(self):
-        return reverse('news_detail', args=[str(self.id)])
 
-    class Meta:
-        verbose_name = "Новость"
-        verbose_name_plural = "Новости"
-        ordering = ['-pub_date']  # Сортировка по дате (новые сначала)
-
-author = models.ForeignKey(
-    User,
-    on_delete=models.CASCADE,
-    null=True,  # Разрешить NULL в базе данных
-    blank=True,  # Разрешить пустое значение в формах
-    default=None  # Значение по умолчанию
-)
+@receiver(post_migrate)
+def create_groups(sender, **kwargs):
+    """Создает группы при миграциях"""
+    Group.objects.get_or_create(name='common')
+    Group.objects.get_or_create(name='authors')

@@ -13,6 +13,7 @@
     {% load static %}
     <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
     {% load censor_filters %}
+    {% load auth_tags %}  <!-- ДОБАВЛЕНА ЗАГРУЗКА AUTH_TAGS -->
 </head>
 <body>
     <!-- Responsive navbar-->
@@ -28,13 +29,24 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/news/search/">Поиск</a>
                     </li>
+                    {% if user.is_authenticated and user.is_author %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'news_create' %}">Добавить новость</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'article_create' %}">Добавить статью</a>
                     </li>
+                    {% endif %}
                 </ul>
+
+                <!-- ПРОСТО КНОПКА ВОЙТИ - БЕЗ ВЫХОДА -->
+                {% if not user.is_authenticated %}
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm" href="{% url 'account_login' %}">Войти</a>
+                    </li>
+                </ul>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -44,6 +56,23 @@
         <div class="text-center">
             <h1>Последние новости и статьи</h1>
             <p class="lead">Всего публикаций: {{ page_obj.paginator.count }}</p>
+        </div>
+
+        <!-- БЛОК С КНОПКАМИ ДОБАВЛЕНИЯ - РАЗМЕЩАЕМ ЗДЕСЬ -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                {% if user.is_authenticated and user.is_author %}
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'news_create' %}" class="btn btn-primary">Создать новость</a>
+                    <a href="{% url 'article_create' %}" class="btn btn-success">Создать статью</a>
+                </div>
+                {% elif user.is_authenticated %}
+                <div class="alert alert-info text-center" role="alert">
+                    Хотите публиковать новости и статьи?
+                    <a href="{% url 'become_author' %}" class="alert-link">Запросите статус автора</a>.
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="row mt-4">
@@ -66,11 +95,16 @@
                             Автор: {% if news.author %}{{ news.author.username }}{% else %}Неизвестен{% endif %}
                         </small>
 
+                        <!-- ОБНОВЛЕННЫЙ БЛОК ДЛЯ КНОПОК РЕДАКТИРОВАНИЯ/УДАЛЕНИЯ -->
                         {% if user.is_authenticated %}
-                        <div class="mt-2">
-                            <a href="{% url 'news_edit' news.id %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
-                            <a href="{% url 'news_delete' news.id %}" class="btn btn-sm btn-outline-danger">Удалить</a>
-                        </div>
+                            {% with is_user_author=user|has_group:'authors' %}
+                            {% if is_user_author and news.author == user %}
+                            <div class="mt-2">
+                                <a href="{% url 'news_edit' news.id %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                                <a href="{% url 'news_delete' news.id %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -121,6 +155,13 @@
                 {% endif %}
             </div>
         </div>
+    </div>
+
+    <!-- Скрытый блок отладки -->
+    <div style="display: none;">
+        <p>Группы пользователя: {{ user.groups.all|join:", " }}</p>
+        <p>Is authenticated: {{ user.is_authenticated }}</p>
+        <p>Username: {{ user.username }}</p>
     </div>
 
     <!-- Bootstrap core JS-->

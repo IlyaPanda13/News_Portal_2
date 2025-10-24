@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Категории - Новостной портал{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>📋 Категории статей</h1>
+            <p class="lead">
+                Подпишитесь на интересующие вас категории и получайте уведомления
+                о новых статьях на вашу электронную почту
+            </p>
+
+            {% if not user.is_authenticated %}
+            <div class="alert alert-info">
+                <strong>ℹ️</strong>
+                <a href="{% url 'account_login' %}" class="alert-link">Войдите</a>
+                в систему, чтобы подписаться на категории
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🏷️ {{ category.name }}</h5>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            📊 Статей: {{ category.post_set.count }}<br>
+                            👥 Подписчиков: {{ category.subscribers.count }}
+                        </small>
+                    </p>
+
+                    {% if user.is_authenticated %}
+                        {% if category.id in user_subscriptions %}
+                            <div class="alert alert-success py-2">
+                                <small>✅ Вы подписаны на эту категорию</small>
+                            </div>
+                            <a href="{% url 'unsubscribe_category' category.id %}"
+                               class="btn btn-outline-danger btn-sm">
+                                🔕 Отписаться
+                            </a>
+                        {% else %}
+                            <a href="{% url 'subscribe_category' category.id %}"
+                               class="btn btn-primary btn-sm">
+                                🔔 Подписаться
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                📭 Категории пока не созданы. Администратор должен добавить категории.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

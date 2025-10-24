@@ -1,5 +1,5 @@
 from django import forms
-from .models import Post
+from .models import Post, Category
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserChangeForm
 
@@ -21,18 +21,20 @@ class NewsSearchForm(forms.Form):
     )
 
 class PostForm(forms.ModelForm):
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Категории"
+    )
+
     class Meta:
         model = Post
-        fields = ['title', 'content', 'post_type']
+        fields = ['title', 'content', 'post_type', 'categories']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'post_type': forms.Select(attrs={'class': 'form-control'}),
-        }
-        labels = {
-            'title': 'Заголовок',
-            'content': 'Содержание',
-            'post_type': 'Тип публикации',
         }
 
 class UserEditForm(UserChangeForm):

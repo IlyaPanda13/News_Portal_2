@@ -5,10 +5,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django.http import HttpResponse
-from .models import Post
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+from .models import Post, Category, Subscription, PostCategory
 from .forms import PostForm, NewsSearchForm, UserEditForm
 from django.views import View
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render, get_object_or_404
 from allauth.socialaccount.providers.yandex.views import YandexOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -17,6 +20,47 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 def is_author(user):
     """Проверяет, находится ли пользователь в группе authors"""
     return user.groups.filter(name='authors').exists()
+
+
+def send_new_post_notification(post):
+    """Отправляет email уведомления подписчикам категорий поста"""
+    try:
+        # Получаем категории поста
+        post_categories = PostCategory.objects.filter(post=post)
+
+        for post_category in post_categories:
+            category = post_category.category
+
+            # Получаем всех подписчиков этой категории
+            subscribers = Subscription.objects.filter(category=category)
+
+            for subscription in subscribers:
+                user = subscription.user
+
+                # Формируем тему и сообщение
+                subject = f'Новая публикация в категории "{category.name}"'
+
+                # Создаем HTML сообщение
+                html_message = render_to_string('news/email/new_post_notification.html', {
+                    'user': user,
+                    'post': post,
+                    'category': category,
+                })
+
+                # Отправляем email
+                send_mail(
+                    subject=subject,
+                    message='',  # Текстовую версию можно оставить пустой или сгенерировать отдельно
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+
+        print(f"DEBUG: Уведомления отправлены для поста {post.id}")
+
+    except Exception as e:
+        print(f"DEBUG: Ошибка при отправке уведомлений: {str(e)}")
 
 
 def news_list(request):
@@ -85,18 +129,29 @@ def article_create(request):
 
 @login_required
 def post_create(request, post_type):
-    # Проверяем права через группу authors
     if not is_author(request.user):
         messages.error(request, 'Только авторы могут создавать публикации!')
         return redirect('news_list')
 
     if request.method == 'POST':
         form = PostForm(request.POST)
+
         if form.is_valid():
+            # Сохраняем пост
             post = form.save(commit=False)
             post.author = request.user
             post.post_type = post_type
             post.save()
+
+            # Создаем связи с категориями
+            selected_categories = form.cleaned_data['categories']
+            for category in selected_categories:
+                PostCategory.objects.create(post=post, category=category)
+
+            # Отправляем уведомления подписчикам
+            from .email_utils import send_new_post_notification
+            send_new_post_notification(post)
+
             messages.success(request, 'Публикация успешно создана!')
             return redirect('news_list')
     else:
@@ -105,8 +160,6 @@ def post_create(request, post_type):
 
     title = 'Создание новости' if post_type == 'news' else 'Создание статьи'
     return render(request, 'news/post_form.html', {'form': form, 'title': title})
-
-
 @login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -210,3 +263,52 @@ class ImmediateYandexView(View):
             # В случае ошибки просто редиректим на стандартный URL авторизации
             login_url = adapter.get_provider().get_login_url(request)
             return redirect(login_url)
+
+
+@login_required
+def subscribe_category(request, category_id):
+    """Подписаться на категорию"""
+    category = get_object_or_404(Category, id=category_id)
+
+    # Проверяем, не подписан ли уже пользователь
+    subscription, created = Subscription.objects.get_or_create(
+        user=request.user,
+        category=category
+    )
+
+    if created:
+        messages.success(request, f'Вы успешно подписались на категорию "{category.name}"')
+    else:
+        messages.info(request, f'Вы уже подписаны на категорию "{category.name}"')
+
+    return redirect('category_list')
+
+
+@login_required
+def unsubscribe_category(request, category_id):
+    """Отписаться от категории"""
+    category = get_object_or_404(Category, id=category_id)
+
+    try:
+        subscription = Subscription.objects.get(user=request.user, category=category)
+        subscription.delete()
+        messages.success(request, f'Вы отписались от категории "{category.name}"')
+    except Subscription.DoesNotExist:
+        messages.error(request, 'Подписка не найдена')
+
+    return redirect('category_list')
+
+
+def category_list(request):
+    """Список всех категорий с информацией о подписках"""
+    categories = Category.objects.all()
+
+    # Для аутентифицированных пользователей проверяем подписки
+    user_subscriptions = []
+    if request.user.is_authenticated:
+        user_subscriptions = Subscription.objects.filter(user=request.user).values_list('category_id', flat=True)
+
+    return render(request, 'news/category_list.html', {
+        'categories': categories,
+        'user_subscriptions': user_subscriptions,
+    })

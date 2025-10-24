@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django_apscheduler',
 
     # allauth apps
     'allauth',
@@ -28,7 +29,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.yandex',
 
-    'news.apps.NewsConfig'
+    'news.apps.NewsConfig',
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -99,8 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# ... предыдущий код ...
-
 # Internationalization
 LANGUAGE_CODE = 'ru-ru'  # Изменил на русский
 TIME_ZONE = 'UTC'
@@ -141,9 +140,6 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/news'
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
-# Настройки электронной почты
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 # Настройки аккаунта
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -152,7 +148,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Временно отключаем подтверждение email
 ACCOUNT_CONFIRM_EMAIL_ON_GET = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-ACCOUNT_LOGOUT_ON_GET = False  # Изменил на False
+ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
 
@@ -188,3 +184,22 @@ GROUP_PERMISSIONS = {
         'news.delete_comment',
     ]
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'IlyaPandatest'
+EMAIL_HOST_PASSWORD = 'ucpfdjtlggwvmgba'
+DEFAULT_FROM_EMAIL = 'IlyaPandatest@yandex.ru'
+
+
+ADMINS = [
+    ('Admin, admin@example.com'),
+]
+
+SERVER_EMAIL = 'ilya.samoilov777@yandex.ru'
+
+# Настройка APScheduler
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25

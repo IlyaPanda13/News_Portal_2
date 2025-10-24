@@ -1,9 +1,48 @@
+# news/models.py
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
 from django import forms
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название категории")
+    subscribers = models.ManyToManyField(User, through='Subscription', related_name='subscribed_categories')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
+    subscribed_at = models.DateTimeField(default=timezone.now, verbose_name="Дата подписки")
+
+    class Meta:
+        unique_together = ('user', 'category')  # Одна подписка на категорию для пользователя
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.category.name}"
+
+
+class PostCategory(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, verbose_name="Публикация")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
+
+    def __str__(self):
+        return f"{self.post.title} - {self.category.name}"
+
+    class Meta:
+        verbose_name = "Категория публикации"
+        verbose_name_plural = "Категории публикаций"
 
 
 class Post(models.Model):
@@ -23,6 +62,8 @@ class Post(models.Model):
         blank=True,
         verbose_name="Автор"
     )
+    # Добавляем связь с категориями
+    categories = models.ManyToManyField(Category, through=PostCategory, verbose_name="Категории")
 
     def __str__(self):
         return f"{self.get_post_type_display()}: {self.title}"

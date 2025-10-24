@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новая статья</title>
+</head>
+<body>
+    <h2>Новая статья в категории "{{ category.name }}"</h2>
+
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h3>{{ post.title }}</h3>
+        <p><strong>Автор:</strong> {{ post.author.username }}</p>
+        <p><strong>Дата публикации:</strong> {{ post.pub_date|date:"d.m.Y H:i" }}</p>
+
+        <div style="margin-top: 15px;">
+            <p>{{ post.content|truncatechars:200 }}</p>
+        </div>
+
+        <a href="http://127.0.0.1:8000{% url 'news_detail' post.id %}"
+           style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 3px;">
+            Читать полностью
+        </a>
+    </div>
+
+    <p style="margin-top: 20px; color: #6c757d;">
+        Вы получили это письмо, потому что подписаны на категорию "{{ category.name }}".
+        <br>
+        <a href="http://127.0.0.1:8000{% url 'unsubscribe_category' category.id %}">Отписаться от рассылки</a>
+    </p>
+</body>
+</html>

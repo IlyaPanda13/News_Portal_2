@@ -26,4 +26,8 @@ urlpatterns = [
     path('profile/edit/', views.profile_edit, name='profile_edit'),  # /news/profile/edit/
     path('become-author/', views.become_author, name='become_author'),  # /news/become-author/
 
+    path('categories/', views.category_list, name='category_list'),
+    path('categories/<int:category_id>/subscribe/', views.subscribe_category, name='subscribe_category'),
+    path('categories/<int:category_id>/unsubscribe/', views.unsubscribe_category, name='unsubscribe_category'),
+
 ]

@@ -1,48 +1,86 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ title }}{% endblock %}
-
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h1 class="my-4">{{ title }}</h1>
+            <h2>{{ title }}</h2>
 
-            <form method="post">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" id="post-form">
                 {% csrf_token %}
 
-                <div class="mb-3">
-                    <label class="form-label">{{ form.title.label }}</label>
-                    {{ form.title }}
-                    {% if form.title.errors %}
-                        <div class="text-danger">{{ form.title.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">{{ form.content.label }}</label>
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <div class="text-danger">{{ form.content.errors }}</div>
-                    {% endif %}
-                </div>
-
-                {% if form.post_type %}
-                <div class="mb-3">
-                    <label class="form-label">{{ form.post_type.label }}</label>
-                    {{ form.post_type }}
-                    {% if form.post_type.errors %}
-                        <div class="text-danger">{{ form.post_type.errors }}</div>
-                    {% endif %}
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Ошибка!</strong> Пожалуйста, исправьте ошибки ниже.
+                    {{ form.errors }}
                 </div>
                 {% endif %}
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label">Заголовок</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <div class="text-danger">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.content.id_for_label }}" class="form-label">Содержание</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="text-danger">{{ form.content.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.post_type.id_for_label }}" class="form-label">Тип публикации</label>
+                    {{ form.post_type }}
+                    {% if form.post_type.errors %}
+                    <div class="text-danger">{{ form.post_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Категории</label>
+                    <div class="border p-3">
+                        {% for checkbox in form.categories %}
+                        <div class="form-check">
+                            {{ checkbox.tag }}
+                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                {{ checkbox.choice_label }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.categories.errors %}
+                    <div class="text-danger">{{ form.categories.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Создать</button>
                     <a href="{% url 'news_list' %}" class="btn btn-secondary">Отмена</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+// Добавим отладочную информацию
+document.getElementById('post-form').addEventListener('submit', function(e) {
+    console.log('Form submitted');
+});
+</script>
 {% endblock %}

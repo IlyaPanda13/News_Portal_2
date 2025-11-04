@@ -28,9 +28,5 @@ http://127.0.0.1:8000/
 С уважением,
 Команда Новостного портала
 '''
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[instance.email],
-        )
+        from .tasks import send_welcome_email_async
+        send_welcome_email_async.delay(instance.email, instance.username)

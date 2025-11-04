@@ -148,9 +148,9 @@ def post_create(request, post_type):
             for category in selected_categories:
                 PostCategory.objects.create(post=post, category=category)
 
-            # Отправляем уведомления подписчикам
-            from .email_utils import send_new_post_notification
-            send_new_post_notification(post)
+            # ✅ ЗАПУСКАЕМ АСИНХРОННУЮ РАССЫЛКУ ЧЕРЕЗ CELERY
+            from .tasks import send_new_post_notification
+            send_new_post_notification.delay(post.id)
 
             messages.success(request, 'Публикация успешно создана!')
             return redirect('news_list')
@@ -160,6 +160,7 @@ def post_create(request, post_type):
 
     title = 'Создание новости' if post_type == 'news' else 'Создание статьи'
     return render(request, 'news/post_form.html', {'form': form, 'title': title})
+
 @login_required
 def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
